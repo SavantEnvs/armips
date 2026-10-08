@@ -1,0 +1,6 @@
+project: savantenvs/armips
+target: tolowercase
+
+cmds:
+  - cmd: /mayhem/fuzz_toLowercase
+    libfuzzer: true

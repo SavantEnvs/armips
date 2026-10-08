@@ -1,0 +1,24 @@
+project: savantenvs/armips
+target: armips
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/armips/testsuite
+
+cmds:
+  - cmd: /mayhem/armips @@
+    filepath: /input.asm
+    # The binary is built with afl-clang-fast so Mayhem reads compiled-in AFL edge coverage
+    # (binary-only tracing records 0 edges on this C++ CLI).
+    afl: true
+    # armips can busy-loop on malformed input; cap each exec so hang inputs cost 3s, not forever.
+    timeout: 3
+    env:
+      # Without this the mayhem-fuzz worker exits immediately on this binary (restart loop,
+      # rc 254); the run event log prescribes raising the compat level for exactly this failure.
+      MFUZZ_COMPAT_LEVEL: '2'
+      # armips busy-loops on trivial malformed input (a lone 'A' or newline — present on the old
+      # revision too), so it can never pass Mayhem's 2s startup smoketest. The original working
+      # target ran with the smoketest disabled and reached 44k+ edges; runaway inputs are handled
+      # per-exec by the fuzzer's own timeouts. Mayhem-orchestration env, not a sanitizer var.
+      DISABLE_SMOKETEST: '1'
